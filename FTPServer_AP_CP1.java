@@ -54,7 +54,24 @@ public class FTPserver_AP_CP1 {
         out.flush();
         System.out.println("encrypt nonce sent");
 
-        // TODO: use session key for the FTP decryption
+        String fileReceived = in.readLine();
+        out.write("uploaded file\n");
+        out.flush();
+
+        byte[] fileReceived_byte = DatatypeConverter.parseBase64Binary(fileReceived);
+        
+
+        Cipher rsaCipher_decrypt = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+        rsaCipher_decrypt.init(Cipher.DECRYPT_MODE, server_privateKey);
+        //TODO: encrypt digest message (signed using RSA)
+        byte[] decryptedBytes = rsaCipher_decrypt.doFinal(fileReceived_byte); //DIGEST = OBJECT BYTE
+
+        File file = new File("FTP1.txt");
+         
+        //Write Content
+        FileWriter writer = new FileWriter(file);
+        writer.write(new String(decryptedBytes));
+        writer.close();
 
         // create a separate thread for the FTP client
 
