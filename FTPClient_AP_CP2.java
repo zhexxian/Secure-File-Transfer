@@ -41,7 +41,7 @@ import javax.xml.bind.DatatypeConverter;
 //TODO(objective): implement a secure file upload application from a client(myself) to an Internet file server(Secstore)
 
 
-public class FileUploadApplication {
+public class FTPClient_AP_CP2 {
 
     public static void main(String args[]) {
 
