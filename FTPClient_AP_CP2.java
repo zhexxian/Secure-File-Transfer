@@ -30,7 +30,7 @@ import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-import javax.crypto.Cipher;
+import javax.crypto.*;
 import javax.xml.bind.DatatypeConverter;
 
 //import sun.misc.IOUtils;
@@ -38,43 +38,30 @@ import javax.xml.bind.DatatypeConverter;
 /**
  * Created by valerie_tan on 4/12/2016.
  */
-//TODO(objective): implement a secure file upload application from a client(myself) to an Internet file server(Secstore)
+//objective: implement a secure file upload application from a client(myself) to an Internet file server(Secstore)
 
 
 public class FTPClient_AP_CP2 {
 
     public static void main(String args[]) {
 
-//TODO: 1. FIXED VERSION OF AP PROTOCOL: - use nonce? authenticate identity of file server(SecStore)
+        String hostName = "10.12.22.161";
+        int portNumber = 43211;
+    
+        String my_nonce = "kukuru";
+
+        boolean file_sent = false;
+        boolean upload_acknowledged = false;
+
+//1. FIXED VERSION OF AP PROTOCOL: - use nonce to authenticate identity of file server(SecStore)
 
         //FIRST, must obtain a trusted Secstore public key
         //make use of CERTIFICATE(from CSE-CA) to verify server's signed certifcate (use X509CERT class in java)
-        //todo:- extract CA's public key from CA's cert
-        //todo:-use CA public key to verify server's signed cert
-        //todo: ask Secstore to sign a msg using its PRIVATE key. receive msg,
-        //todo: use Secstore's (trusted) public key to verify signed msg
-
-        String hostName = "10.12.22.161";
-        int portNumber = 43211;
-
-        byte[] decrypted_nonce; //todo: what to do with this?
-
-        //String my_nonce = "kukuru";
-        String my_nonce = "k";
-
-        boolean nonce_verified= false;
-        boolean upload_acknowledged=false;
-
-        String server_bytes_to_string= null;
-
-        //TODO: val: send plain R to zhexian
-        //TODO: zhexian will encrypt R using her privat eky
-        //TODO: val: on my side, obtain z's public key from CA
-        //todo: decrypt to get plain R and check if match
-
-        //todo: check that server acknowledged file upload, print n close connection
+        //TODO:- extract CA's public key from CA's cert
+        //TODO: - use CA public key to verify server's signed cert
+        //ask Secstore to sign a msg using its PRIVATE key. receive msg,
+        //use Secstore's (trusted) public key to verify signed msg        
         try {
-            //TODO: CREATE OBJECT FOR CA CERT, VALIDIFY AND VERIFY
             //1. Create X509 Certificate object
             InputStream caCertInputStream= new FileInputStream("C:\\Users\\zhexian\\Documents\\GitHub\\Encrypted_FTP_NSproject\\CA.crt"); //TODO: REPLACE WITH ADDRESS
             CertificateFactory cf_ca= CertificateFactory.getInstance("X.509");
@@ -92,12 +79,12 @@ public class FTPClient_AP_CP2 {
 
             //TODO: verify CA using its own public key
             PublicKey CA_Key = CAcert.getPublicKey();
-            try {
-                CAcert.verify(CA_Key);
-            }catch (Exception e){
-                e.printStackTrace();
-                System.out.println("Verification for CA cert gone wrong");
-            }
+            // try {
+            //     CAcert.verify(CA_Key);
+            // }catch (Exception e){
+            //     e.printStackTrace();
+            //     System.out.println("Verification for CA cert gone wrong");
+            // }
 
             //TODO: CREATE OBJECT FOR MY CERT, VALIDIFY AND VERIFY
 
@@ -110,7 +97,6 @@ public class FTPClient_AP_CP2 {
             //2. Check validity of signed cert, if not valid an exception will be thrown
             try{
                 MyCert.checkValidity();
-                MyCert.verify(MyCert.getPublicKey());
                 System.out.println("public key certificate checked");
             }
             // CertificateExpiredException - if the certificate has expired.
@@ -125,20 +111,18 @@ public class FTPClient_AP_CP2 {
             //TODO: verify my cert using its own public key
             //3.Extract public key from X509 cert object
             PublicKey server_publicKey = MyCert.getPublicKey();
-            try {
-                MyCert.verify(server_publicKey);
-            }catch (Exception e){
-                e.printStackTrace();
-                System.out.println("Verification for MY cert gone wrong");
-            }
+            // try {
+            //     MyCert.verify(server_publicKey);
+            // }catch (Exception e){
+            //     e.printStackTrace();
+            //     System.out.println("Verification for MY cert gone wrong");
+            // }
             //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
             //CREATE TCP CONNECTIONS - CONNECT TO SERVER 
-            //(keep it open, use while to keep listening for rpelies)
             Socket clientSocket = new Socket(hostName, portNumber);
 
-            //todo: convert inputstream into bytes
             InputStream inputStream_from_server = clientSocket.getInputStream();
             InputStreamReader isr = new InputStreamReader(inputStream_from_server);
             BufferedReader in = new BufferedReader(isr);
@@ -146,8 +130,6 @@ public class FTPClient_AP_CP2 {
             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(),true);
 
             //broadcast nonce (an int) to server (send without encryption)
-            //printwriter is used
-
             out.println(my_nonce);
             out.flush();
             System.out.println("plain nonce sent");
@@ -158,86 +140,107 @@ public class FTPClient_AP_CP2 {
 
             //convert encrypted nonce to byte[] format
             byte[] encrypted_nonce = DatatypeConverter.parseBase64Binary(encrypted_nonce_string);
-            //decrypt the nonce and compare with original nonce
-            //Create RSA("RSA/ECB/PKCS1Padding") cipher object and initialize is as 
-            //decrypt mode, use PUBLIC key
+            
+            //decrypt the nonce by creating RSA("RSA/ECB/PKCS1Padding") cipher object 
+            //and initialize is as decrypt mode, use PUBLIC key
             Cipher rsaCipher_decrypt_nonce= Cipher.getInstance("RSA/ECB/PKCS1Padding");
             rsaCipher_decrypt_nonce.init(Cipher.DECRYPT_MODE, server_publicKey);
-            //decrypt to get plain R and check if match
-            decrypted_nonce= rsaCipher_decrypt_nonce.doFinal(encrypted_nonce);
+            byte[] decrypted_nonce= rsaCipher_decrypt_nonce.doFinal(encrypted_nonce);
             System.out.println("decrypted_nonce: "+decrypted_nonce);
-            //convert Bytes into String
-            server_bytes_to_string= new String(decrypted_nonce);
-            if(server_bytes_to_string.equals(my_nonce)){
+
+            //convert byte[] into String and check if matches the original nonce
+            String decrypted_nonce_string= new String(decrypted_nonce);
+            if(decrypted_nonce_string.equals(my_nonce)){
                 System.out.println("nonce matched");
             }
 
-            //TODO: use a do-while loop (1st, check nonce correct, send file, then acknowledged, close connection)
-            do{  //TODO: implement like a state machine
-             
-                 //todo: send file (move in rest of code)
-                 String fileName = "C:\\Users\\zhexian\\Dropbox\\VM\\NSProjectRelease\\sampleData\\smallFile.txt";
-                 //String fileName = "C:\\Users\\valer_000\\Google Drive\\CSE\\Projects\\NSProjectRelease\\sampleData\\smallFile.txt";
-                 File file_to_server = new File(fileName);
-                 String data = "";
-                 String line;
-                 BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName));
-                 while ((line = bufferedReader.readLine()) != null) {
-                     data = data + "\n" + line;
-                 }
-                 //Testing
-                 //System.out.println("File content:\n " + data);
-                 //TODO: Calculate message digest, using MD5 hash function
-                 MessageDigest messageDigest = MessageDigest.getInstance("MD5");
-                 //supply with input data (byte stream) using update() method
-                 FileInputStream fileInputStream = null;
-                 byte[] input_file_as_byte_array = new byte[(int) file_to_server.length()];
+            //check that server acknowledged file upload, print and close connection
+            //use a do-while loop (send file, receive acknowledgment, close connection)
+            do{
+                if(!file_sent){
+                    //send file (move in rest of code)
+                    String fileName = "C:\\Users\\zhexian\\Dropbox\\VM\\NSProjectRelease\\sampleData\\smallFile.txt";
+                    //String fileName = "C:\\Users\\valer_000\\Google Drive\\CSE\\Projects\\NSProjectRelease\\sampleData\\smallFile.txt";
+                    File file_to_server = new File(fileName);
+                    String data = "";
+                    String line;
+                    BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName));
+                    while ((line = bufferedReader.readLine()) != null) {
+                        data = data + "\n" + line;
+                    }
+                    //Testing
+                    //System.out.println("File content:\n " + data);
+                    //TODO: Calculate message digest, using MD5 hash function
+                    //MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+                    //supply with input data (byte stream) using update() method
+                    FileInputStream fileInputStream = null;
+                    byte[] input_file_as_byte_array = new byte[(int) file_to_server.length()];
 
-                 try {
-                     //convert file into byte array
-                     fileInputStream = new FileInputStream(file_to_server);
-                     fileInputStream.read(input_file_as_byte_array);
-                     fileInputStream.close();
-                 } catch (Exception e) {
-                     e.printStackTrace();
-                 }
-                 messageDigest.update(input_file_as_byte_array);
-                 byte[] digest = messageDigest.digest(data.getBytes());  ///the data is the file
-                 //u sign msgdigest with key
-                 //TODO: Create RSA("RSA/ECB/PKCS1Padding") cipher object and initialize is as encrypt mode, use PRIVATE key.
-                 Cipher rsaCipher_encrypt = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-                 rsaCipher_encrypt.init(Cipher.ENCRYPT_MODE, server_publicKey);
-                 //TODO: encrypt digest message (signed using RSA)
-                 byte[] encryptedBytes = rsaCipher_encrypt.doFinal(digest); //DIGEST = OBJECT BYTE
-                 System.out.println("Length of output message digest(signed with RSA) byte[]: " + encryptedBytes.length);
+                    try {
+                        //convert file into byte array
+                        fileInputStream = new FileInputStream(file_to_server);
+                        fileInputStream.read(input_file_as_byte_array);
+                        fileInputStream.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    //messageDigest.update(input_file_as_byte_array);
+                    //byte[] digest = messageDigest.digest(data.getBytes());  //the data is the file
+                    //sign msgdigest with key
 
-                 //TODO: SEND TO SECSTORE
-                 out.write(new String(encryptedBytes)+"\n");
-                 out.flush();
-             }
-//             else{
-//                //TODO: NEED TO MAKE A TIMEOUT?
-//
-//                 //nonce verified already, wait for server to reply acknowledged
-//                 server_bytes_to_string= new String(input_from_server);
-//                 if(server_bytes_to_string.equals("uploaded file")){
-//                     upload_acknowledged= true;
-//                 }
-//                 else {
-//                     System.out.println("File was not uploaded successfully");
-//                     System.exit(1);
-//                 }
-//
-//             }
-            while(!upload_acknowledged);
+                    //generate session secret key using DES algorithm
+                    SecretKey key = KeyGenerator.getInstance("DES").generateKey();
 
-             //TODO: close connection when uploaded
-             System.out.println("File uploaded successfully");
-             inputStream_from_server.close();
-             outputStream_to_server.close();
-             clientSocket.close();
+                    //create cipher object, initialize the ciphers with the given key, choose encryption mode as DES
+                    Cipher cipher_encrypt = Cipher.getInstance("DES");
+                    cipher_encrypt.init(Cipher.ENCRYPT_MODE, key); //init as encrypt mode
 
+                    //do encryption, by calling method Cipher.doFinal().
+                    byte[] encryptedBytes = cipher_encrypt.doFinal(input_file_as_byte_array);
 
+                    //convert encrypted file to base64 format
+                    String encryptedBytes_string = DatatypeConverter.printBase64Binary(encryptedBytes);
+
+                    //send DES encrypted file to client
+                    out.write(encryptedBytes_string+"\n");
+                    out.flush();
+                    System.out.println("DES encrypted file sent");                  
+
+                    //Create RSA("RSA/ECB/PKCS1Padding") cipher object and initialize is as encrypt mode, 
+                    //use PUBLIC key.
+                    Cipher rsaCipher_encrypt = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+                    rsaCipher_encrypt.init(Cipher.ENCRYPT_MODE, server_publicKey);
+
+                    //convert secrete DES session key to byte[]
+                    byte[] secrete_key_byte = key.getEncoded();
+
+                    //encrypt message
+                    byte[] secrete_key_byte_encrypted = rsaCipher_encrypt.doFinal(secrete_key_byte);
+
+                    //SEND TO SECSTORE
+                    out.write(new String(secrete_key_byte_encrypted)+"\n");
+                    out.flush();
+                    file_sent = true;
+                } 
+
+                else{
+                    //nonce already verified, wait for server to reply acknowledged
+                    String server_bytes_to_string= new String(in.readLine());
+                    if(server_bytes_to_string.equals("uploaded file")){
+                        upload_acknowledged= true;
+                        //close connection when uploaded
+                        System.out.println("File uploaded successfully");
+                        inputStream_from_server.close();
+                        outputStream_to_server.close();
+                        clientSocket.close();
+                    }
+                    else {
+                        System.out.println("File was not uploaded successfully");
+                        System.exit(1);
+                    }
+
+                }
+            } while(!upload_acknowledged);
 
             //TODO: convert file into byte stream
 

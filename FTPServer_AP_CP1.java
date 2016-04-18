@@ -37,38 +37,42 @@ public class FTPserver_AP_CP1 {
         String privateKeyFileName = "C:\\Users\\zhexian\\Dropbox\\VM\\NSProjectRelease\\"+
         "RSA certificate request\\privateServer.der";
         Path path = Paths.get(privateKeyFileName);
-        // Read file to a byte array.
         byte[] privKeyByteArray = Files.readAllBytes(path);
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privKeyByteArray);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         PrivateKey server_privateKey = keyFactory.generatePrivate(keySpec);
 
-        // encrypt nonce with private key, and send nounce to client
+        // encrypt nonce with private key
         Cipher rsaCipher_encrypt_nonce= Cipher.getInstance("RSA/ECB/PKCS1Padding");
         rsaCipher_encrypt_nonce.init(Cipher.ENCRYPT_MODE, server_privateKey);
         byte[] encrypted_nonce= rsaCipher_encrypt_nonce.doFinal((nonce.getBytes()));
+        
+        // convert encrypted nonce into String (base64binary)
         String encrypted_nonce_string = DatatypeConverter.printBase64Binary(encrypted_nonce);
         System.out.println("encrypt nounce: "+encrypted_nonce_string);
         System.out.println("encrypt nounce size: "+encrypted_nonce.length);
+
+        // send encrypted nonce to client
         out.write(encrypted_nonce_string+"\n");
         out.flush();
         System.out.println("encrypt nonce sent");
 
+        // read file transfered from client, write acknowledgement to client
         String fileReceived = in.readLine();
         out.write("uploaded file\n");
         out.flush();
 
+        // convert String received from client (encrypted file) to byte[]
         byte[] fileReceived_byte = DatatypeConverter.parseBase64Binary(fileReceived);
-        
 
+        // decrypt the encrypted file in byte[] format useing private key
         Cipher rsaCipher_decrypt = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         rsaCipher_decrypt.init(Cipher.DECRYPT_MODE, server_privateKey);
-        //TODO: encrypt digest message (signed using RSA)
-        byte[] decryptedBytes = rsaCipher_decrypt.doFinal(fileReceived_byte); //DIGEST = OBJECT BYTE
+        byte[] decryptedBytes = rsaCipher_decrypt.doFinal(fileReceived_byte);
+        //----------ask TA: arrayOutOfBoundException here-------------
 
+        // create a new file to store ht file received from client
         File file = new File("FTP1.txt");
-         
-        //Write Content
         FileWriter writer = new FileWriter(file);
         writer.write(new String(decryptedBytes));
         writer.close();

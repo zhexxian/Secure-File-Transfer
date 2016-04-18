@@ -11,7 +11,8 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.crypto.Cipher;
+import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 
 public class FTPserver_AP_CP2 {
@@ -37,24 +38,55 @@ public class FTPserver_AP_CP2 {
         String privateKeyFileName = "C:\\Users\\zhexian\\Dropbox\\VM\\NSProjectRelease\\"+
         "RSA certificate request\\privateServer.der";
         Path path = Paths.get(privateKeyFileName);
-        // Read file to a byte array.
         byte[] privKeyByteArray = Files.readAllBytes(path);
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privKeyByteArray);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         PrivateKey server_privateKey = keyFactory.generatePrivate(keySpec);
 
-        // encrypt nonce with private key, and send nounce to client
+        // encrypt nonce with private key
         Cipher rsaCipher_encrypt_nonce= Cipher.getInstance("RSA/ECB/PKCS1Padding");
         rsaCipher_encrypt_nonce.init(Cipher.ENCRYPT_MODE, server_privateKey);
         byte[] encrypted_nonce= rsaCipher_encrypt_nonce.doFinal((nonce.getBytes()));
+        
+        // convert encrypted nonce into String (base64binary)
         String encrypted_nonce_string = DatatypeConverter.printBase64Binary(encrypted_nonce);
         System.out.println("encrypt nounce: "+encrypted_nonce_string);
         System.out.println("encrypt nounce size: "+encrypted_nonce.length);
+
+        // send encrypted nonce to client
         out.write(encrypted_nonce_string+"\n");
         out.flush();
         System.out.println("encrypt nonce sent");
 
-        // TODO: use session key for the FTP decryption
+        // read DES encrypted file from client
+        String fileReceived = in.readLine();
+        // read encrypted DES session key from client, write acknowledgement to client
+        String secrete_key_byte_encrypted_string = in.readLine();
+        out.write("uploaded file\n");
+        out.flush();
+
+        // convert String received from client (encrypted file) to byte[]
+        byte[] fileReceived_byte = DatatypeConverter.parseBase64Binary(fileReceived);
+        byte[] secrete_key_byte_encrypted = DatatypeConverter.parseBase64Binary(secrete_key_byte_encrypted_string);
+
+        // decrypt the encrypted DES session key in byte[] format useing private key
+        Cipher rsaCipher_decrypt = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+        rsaCipher_decrypt.init(Cipher.DECRYPT_MODE, server_privateKey);
+        byte[] decryptedBytes = rsaCipher_decrypt.doFinal(secrete_key_byte_encrypted);
+        SecretKey key = new SecretKeySpec(secrete_key_byte_encrypted, 0, secrete_key_byte_encrypted.length, "DES");
+
+        //create cipher object, initialize the ciphers with the given key, choose decryption mode as DES
+        Cipher cipher_decrypt = Cipher.getInstance("DES");
+        cipher_decrypt.init(Cipher.DECRYPT_MODE, key); //init as decrypt mode
+
+        //do decryption, by calling method Cipher.doFinal().
+        byte[] decryptedFile = cipher_decrypt.doFinal(fileReceived_byte);
+
+        // create a new file to store ht file received from client
+        File file = new File("FTP1.txt");
+        FileWriter writer = new FileWriter(file);
+        writer.write(new String(decryptedFile));
+        writer.close();
 
         // create a separate thread for the FTP client
 
