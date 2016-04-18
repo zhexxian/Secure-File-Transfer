@@ -74,18 +74,43 @@ public class FileUploadApplication {
 
         //todo: check that server acknowledged file upload, print n close connection
         try {
-            //obtain and verify public key
+            //TODO: CREATE OBJECT FOR CA CERT, VALIDIFY AND VERIFY
             //1. Create X509 Certificate object
+            InputStream caCertInputStream= new FileInputStream("CA.crt"); //TODO: REPLACE WITH ADDRESS
+            CertificateFactory cf_ca= CertificateFactory.getInstance("X.509");
+            X509Certificate CAcert= (X509Certificate) cf_ca.generateCertificate(caCertInputStream);
+
+            try{
+                CAcert.checkValidity();
+                System.out.println("CA certificate checked");
+            }catch (CertificateExpiredException e){
+                e.printStackTrace();
+            } catch (CertificateNotYetValidException e){
+                e.printStackTrace();
+                System.out.println("CA certificate not yet valid");
+            }
+
+            //TODO: verify CA using its own public key
+            PublicKey CA_Key = CAcert.getPublicKey();
+            try {
+                CAcert.verify(CA_Key);
+            }catch (Exception e){
+                e.printStackTrace();
+                System.out.println("Verification for CA cert gone wrong");
+            }
+
+            //TODO: CREATE OBJECT FOR MY CERT, VALIDIFY AND VERIFY
 
             // InputStream certFileInputStream = new FileInputStream("C:\\Users\\valer_000\\AndroidStudioProjects\\" +
             //         "CSE\\nslabs\\src\\main\\java\\nsproject\\Signed Certificate - 1001191.crt");
             InputStream certFileInputStream = new FileInputStream("C:\\Users\\zhexian\\Dropbox\\VM\\NSProjectRelease\\"+
-                "Signed Certificate - 1001214.crt\\Signed Certificate - 1001214.crt");
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            X509Certificate CAcert = (X509Certificate) cf.generateCertificate(certFileInputStream);
+                    "Signed Certificate - 1001214.crt\\Signed Certificate - 1001214.crt");
+            CertificateFactory cf_myself = CertificateFactory.getInstance("X.509");
+            X509Certificate MyCert = (X509Certificate) cf_myself.generateCertificate(certFileInputStream);
             //2. Check validity of signed cert, if not valid an exception will be thrown
-            try{ 
-                CAcert.checkValidity();
+            try{
+                MyCert.checkValidity();
+                MyCert.verify(MyCert.getPublicKey());
                 System.out.println("public key certificate checked");
             }
             // CertificateExpiredException - if the certificate has expired.
@@ -95,11 +120,20 @@ public class FileUploadApplication {
             // CertificateNotYetValidException - if the certificate is not yet valid.
             catch (CertificateNotYetValidException e){
                 e.printStackTrace();
+                System.out.println("My certificate not yet valid");
             }
-            //!!!!TODO: verify the public key 
+            //TODO: verify my cert using its own public key
             //3.Extract public key from X509 cert object
-            PublicKey server_publicKey = CAcert.getPublicKey();
-            
+            PublicKey server_publicKey = MyCert.getPublicKey();
+            try {
+                MyCert.verify(server_publicKey);
+            }catch (Exception e){
+                e.printStackTrace();
+                System.out.println("Verification for MY cert gone wrong");
+            }
+            //////////////////////////////////////////////////////////////////////////////////////////////////
+
+
             //CREATE TCP CONNECTIONS - CONNECT TO SERVER 
             //(keep it open, use while to keep listening for rpelies)
             Socket clientSocket = new Socket(hostName, portNumber);
