@@ -50,7 +50,7 @@ public class FTPserver_AP_CP2 {
         String encrypted_nonce_string = DatatypeConverter.printBase64Binary(encrypted_nonce);
         System.out.println("encrypt nounce: "+encrypted_nonce_string);
         System.out.println("encrypt nounce size: "+encrypted_nonce.length);
-        out.write(encrypted_nonce_string);
+        out.write(encrypted_nonce_string+"\n");
         out.flush();
         System.out.println("encrypt nonce sent");
 
