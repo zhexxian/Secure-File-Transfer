@@ -57,6 +57,9 @@ public class FTPserver_AP_CP1 {
         out.flush();
         System.out.println("encrypt nonce sent");
 
+        // start time for file transfer
+        long startTime = System.nanoTime();
+
         // read file transfered from client, write acknowledgement to client
         String fileReceived = in.readLine();
         out.write("uploaded file\n");
@@ -77,60 +80,13 @@ public class FTPserver_AP_CP1 {
         writer.write(new String(decryptedBytes));
         writer.close();
 
-        // create a separate thread for the FTP client
-
-        //FTPthread ftpThread = new FTPthread(inChannel, outChannel);
-
-        // starting the thread
-        
-        //ftpThread.start();
-
-        // join thread
-        //try {
-            
-        //     ftpThread.join();
-
-        // } catch (InterruptedException e) {
-        //     System.out.println("A thread didn't finish!");
-        // } catch (Exception e) {
-        //     System.out.println("Exception captured.");
-        // }
-
-        // System.out.println("File has been successfully transferred!");             
+        // end time for file transfer
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime); 
+        // the time may include time to enter the name of the file to be transferred
+        System.out.println("Time taken for file transfer [CP2] is: "+duration/1000000+" ms");                 
 
         // System.out.println("Server connection terminated");   
         // serverSocket.close();
     }
 }
-
-// Thread class
-// class FTPthread extends Thread {
-//     private BufferedReader in;
-//     private PrintWriter out;
-    
-//     public FTPthread (BufferedReader in, PrintWriter out) {
-//         this.in = in;
-//         this.out = out;
-//     }
-    
-//     public void run () {
-//         // TODO: create bytes object instead of text file
-//         File file = new File("client " + id + " file.txt");
-//         BufferedWriter output;
-//         try {
-//             // output = new BufferedWriter(new FileWriter(file));
-//             String newLine = in.readLine();
-//             while(newLine!=null){
-//                 // output.write(newLine);
-//                 // out.println("Received");
-//                 // out.flush();
-//                 newLine = in.readLine();
-//                 //TODO: add the in readline to the file saved
-//             }
-//             // TODO: compare the hash to check message integrity
-//             output.close();  
-//         } catch (IOException e) {
-//             e.printStackTrace();
-//         }
-//     }
-// }
