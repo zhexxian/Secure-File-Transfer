@@ -226,13 +226,16 @@ public class FTPClient_AP_CP1 {
                         joining_encrypted_blocks.write(block, 0, block.length);
                     }
                     byte[] encryptedBytes= joining_encrypted_blocks.toByteArray();
+
+                    // convert encryptedBytes to base64 format
+                    String encryptedBytes_string = DatatypeConverter.printBase64Binary(encryptedBytes);
                     //byte[] encryptedBytes = rsaCipher_encrypt.doFinal(input_file_as_byte_array);
                     //TODO: END OF CHANGE
 
                     System.out.println("Length of output message digest(signed with RSA) byte[]: " + input_file_as_byte_array.length);
 
                     //SEND TO SECSTORE
-                    out.write(new String(encryptedBytes)+"\n");
+                    out.write(encryptedBytes_string+"\n");
                     out.flush();
                     file_sent = true;
                 } 
