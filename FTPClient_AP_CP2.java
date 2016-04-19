@@ -176,7 +176,8 @@ public class FTPClient_AP_CP2 {
                     //supply with input data (byte stream) using update() method
                     FileInputStream fileInputStream = null;
                     byte[] input_file_as_byte_array = new byte[(int) file_to_server.length()];
-
+                    int file_byte_length= input_file_as_byte_array.length;
+                    System.out.println("input file byte array length= "+ input_file_as_byte_array.length);
                     try {
                         //convert file into byte array
                         fileInputStream = new FileInputStream(file_to_server);

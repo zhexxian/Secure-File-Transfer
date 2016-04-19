@@ -57,11 +57,11 @@ public class FTPserver_AP_CP2 {
         out.write(encrypted_nonce_string+"\n");
         out.flush();
         System.out.println("encrypt nonce sent");
-
-        // start time for file transfer
-        long startTime = System.nanoTime();
+        
         // read DES encrypted file from client
         String fileReceived = in.readLine();
+        // start time for file transfer
+        long startTime = System.nanoTime();
         // read encrypted DES session key from client, write acknowledgement to client
         String secrete_key_byte_encrypted_string = in.readLine();
         System.out.println(secrete_key_byte_encrypted_string);

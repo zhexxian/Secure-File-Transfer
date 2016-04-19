@@ -58,11 +58,12 @@ public class FTPserver_AP_CP1 {
         out.flush();
         System.out.println("encrypt nonce sent");
 
-        // start time for file transfer
-        long startTime = System.nanoTime();
+
 
         // read file transfered from client, write acknowledgement to client
         String fileReceived = in.readLine();
+        // start time for file transfer
+        long startTime = System.nanoTime();
         out.write("uploaded file\n");
         out.flush();
 
