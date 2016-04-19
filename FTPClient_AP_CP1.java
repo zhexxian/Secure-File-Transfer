@@ -29,6 +29,8 @@ import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.crypto.Cipher;
 import javax.xml.bind.DatatypeConverter;
@@ -185,9 +187,25 @@ public class FTPClient_AP_CP1 {
                     //use PUBLIC key.
                     Cipher rsaCipher_encrypt = Cipher.getInstance("RSA/ECB/PKCS1Padding");
                     rsaCipher_encrypt.init(Cipher.ENCRYPT_MODE, server_publicKey);
-                    
+
+                    //TODO: break up bytes into <117= 100 per block to do final
+                    int file_byte_length= input_file_as_byte_array.length;
+                    int number_of_blocks= (int) Math.ceil(file_byte_length/100.0);
+                    //e.g. 350: get 3: index from 0 to 3
                     //encrypt message
-                    byte[] encryptedBytes = rsaCipher_encrypt.doFinal(input_file_as_byte_array);
+                    byte[][] blocks_of_fileBytes= new byte[number_of_blocks][];
+                    byte[][] blocks_of_encryptedBytes= new byte[number_of_blocks][];
+                    byte[] encryptedBytes= new byte[input_file_as_byte_array.length];
+
+                    for (int i=0; i<blocks_of_fileBytes.length; i+=100) {
+                        blocks_of_fileBytes[i]= Arrays.copyOfRange(input_file_as_byte_array, i, i+100);
+                        blocks_of_encryptedBytes[i]= rsaCipher_encrypt.doFinal(blocks_of_fileBytes[i]);
+                    }
+                    //tpodo: concatenate
+                    for (int i=0; i<blocks_of_fileBytes.length; i+=100) {
+                        joinblocks_of_encryptedBytes[i];
+                    }
+                    //byte[] encryptedBytes = rsaCipher_encrypt.doFinal(input_file_as_byte_array);
                     System.out.println("Length of output message digest(signed with RSA) byte[]: " + input_file_as_byte_array.length);
 
                     //SEND TO SECSTORE
