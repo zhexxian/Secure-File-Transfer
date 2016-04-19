@@ -58,6 +58,7 @@ public class FTPserver_AP_CP2 {
         out.flush();
         System.out.println("encrypt nonce sent");
         
+
         // read DES encrypted file from client
         String fileReceived = in.readLine();
         // start time for file transfer
