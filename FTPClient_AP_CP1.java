@@ -156,7 +156,13 @@ public class FTPClient_AP_CP1 {
             do{
                 if(!file_sent){
                     //send file (move in rest of code)
-                    String fileName = "C:\\Users\\zhexian\\Dropbox\\VM\\NSProjectRelease\\sampleData\\smallFile.txt";
+                    System.out.println("enter the name of the file to be transferred: ");
+                    BufferedReader stdIn =
+                        new BufferedReader(
+                            new InputStreamReader(System.in));
+                    String inputFileName = stdIn.readLine();
+                    String fileName = "C:\\Users\\zhexian\\Dropbox\\VM\\NSProjectRelease\\sampleData\\"+inputFileName;
+                    //String fileName = "C:\\Users\\zhexian\\Dropbox\\VM\\NSProjectRelease\\sampleData\\smallFile.txt";
                     //String fileName = "C:\\Users\\valer_000\\Google Drive\\CSE\\Projects\\NSProjectRelease\\sampleData\\smallFile.txt";
                     File file_to_server = new File(fileName);
                     String data = "";
@@ -267,6 +273,8 @@ public class FTPClient_AP_CP1 {
             //TODO(after coding): Measure data upload time costs of CP1 CP2 for files of diff sizes(provided).
             // Plot results, compare performance
 
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found");
         } catch (Exception e) {
             e.printStackTrace();
         }
