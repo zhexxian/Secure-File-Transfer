@@ -1,13 +1,12 @@
 package nsproject;
 
-import com.sun.xml.internal.ws.util.ByteArrayBuffer;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -211,7 +210,7 @@ public class FTPClient_AP_CP1 {
                             blocks_of_fileBytes[i] = Arrays.copyOfRange(input_file_as_byte_array, i * 100, (i + 1) * 100);
                         }
                         else{
-                            blocks_of_fileBytes[i] = Arrays.copyOfRange(input_file_as_byte_array, i * 100, input_file_as_byte_array.length-(i*100));
+                            blocks_of_fileBytes[i] = Arrays.copyOfRange(input_file_as_byte_array, i * 100, input_file_as_byte_array.length);
                             //e.g. 10th block( i= 9) has 70 bytes, we copy 900th byte to 970th byte(exclusive)
                             System.out.println("from: "+ i*100);
                             System.out.println("to: "+ (input_file_as_byte_array.length-(i*100)));

@@ -87,7 +87,7 @@ public class FTPserver_AP_CP1 {
                 blocks_of_fileBytes[i] = Arrays.copyOfRange(fileReceived_byte, i * 100, (i + 1) * 100);
             }
             else{
-                blocks_of_fileBytes[i] = Arrays.copyOfRange(fileReceived_byte, i * 100, fileReceived_byte.length- (i*100));
+                blocks_of_fileBytes[i] = Arrays.copyOfRange(fileReceived_byte, i * 100, fileReceived_byte.length);
             //e.g. 10th block( i= 9) has 70 bytes, we copy 900th byte to 970th byte(exclusive)
             }
         }
