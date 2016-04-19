@@ -77,15 +77,6 @@ public class FTPClient_AP_CP1 {
                 System.out.println("CA certificate not yet valid");
             }
 
-            //TODO: verify CA using its own public key
-            PublicKey CA_Key = CAcert.getPublicKey();
-            // try {
-            //     CAcert.verify(CA_Key);
-            // }catch (Exception e){
-            //     e.printStackTrace();
-            //     System.out.println("Verification for CA cert gone wrong");
-            // }
-
             //TODO: CREATE OBJECT FOR MY CERT, VALIDIFY AND VERIFY
 
             // InputStream certFileInputStream = new FileInputStream("C:\\Users\\valer_000\\AndroidStudioProjects\\" +
@@ -108,16 +99,18 @@ public class FTPClient_AP_CP1 {
                 e.printStackTrace();
                 System.out.println("My certificate not yet valid");
             }
-            //TODO: verify my cert using its own public key
+            //verify my cert using CA's public key
+            PublicKey CA_Key = CAcert.getPublicKey();
+            
+            try {
+                MyCert.verify(CA_Key);
+            }catch (Exception e){
+                e.printStackTrace();
+                System.out.println("Verification for MY cert gone wrong");
+            }
+             
             //3.Extract public key from X509 cert object
             PublicKey server_publicKey = MyCert.getPublicKey();
-            // try {
-            //     MyCert.verify(server_publicKey);
-            // }catch (Exception e){
-            //     e.printStackTrace();
-            //     System.out.println("Verification for MY cert gone wrong");
-            // }
-            //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
             //CREATE TCP CONNECTIONS - CONNECT TO SERVER 
@@ -192,10 +185,6 @@ public class FTPClient_AP_CP1 {
                     //use PUBLIC key.
                     Cipher rsaCipher_encrypt = Cipher.getInstance("RSA/ECB/PKCS1Padding");
                     rsaCipher_encrypt.init(Cipher.ENCRYPT_MODE, server_publicKey);
-
-                    //divide message into blocks of 117 bytes (so that with 11 bytes padding total is 128 bytes)
-                    //--------check with TA should I do this---------
-                    //-----or should use message digest? How to convert back to original file----------
                     
                     //encrypt message
                     byte[] encryptedBytes = rsaCipher_encrypt.doFinal(input_file_as_byte_array);
