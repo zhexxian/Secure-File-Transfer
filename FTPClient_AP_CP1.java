@@ -204,10 +204,11 @@ public class FTPClient_AP_CP1 {
                     byte[][] blocks_of_fileBytes= new byte[number_of_blocks][];
                     byte[][] blocks_of_encryptedBytes= new byte[number_of_blocks][];
 
-                    for (int i=0; i<blocks_of_fileBytes.length; i+=100) {
-                        blocks_of_fileBytes[i]= Arrays.copyOfRange(input_file_as_byte_array, i, i + 100);
+                    for (int i=0; i<blocks_of_fileBytes.length; i++) {
+                        //e.g. 1st block: copys 0th-100th byte from input file byte array
+                        blocks_of_fileBytes[i]= Arrays.copyOfRange(input_file_as_byte_array, i*100, (i+1)*100);
                     }
-                    for (int i=0; i<blocks_of_fileBytes.length; i+=100) {
+                    for (int i=0; i<blocks_of_fileBytes.length; i++) {
                         blocks_of_encryptedBytes[i]= rsaCipher_encrypt.doFinal(blocks_of_fileBytes[i]);
                     }
                     //TODO: concantenate byte array using ByteArrayOutputStream

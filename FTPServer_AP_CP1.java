@@ -81,8 +81,9 @@ public class FTPserver_AP_CP1 {
         byte[][] blocks_of_fileBytes= new byte[number_of_blocks][];
         byte[][] blocks_of_decryptedBytes= new byte[number_of_blocks][];
 
-        for (int i=0; i<blocks_of_fileBytes.length; i+=100) {
-            blocks_of_fileBytes[i]= Arrays.copyOfRange(fileReceived_byte, i, i + 100);
+        for (int i=0; i<blocks_of_fileBytes.length; i++) {
+            //e.g. 1st block: copys 0th-100th byte from received file byte array
+            blocks_of_fileBytes[i]= Arrays.copyOfRange(fileReceived_byte, i*100, (i+1)*100);
         }
         for (int i=0; i<blocks_of_fileBytes.length; i+=100) {
             blocks_of_decryptedBytes[i]= rsaCipher_decrypt.doFinal(blocks_of_fileBytes[i]);
