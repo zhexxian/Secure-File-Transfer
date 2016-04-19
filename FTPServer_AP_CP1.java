@@ -73,9 +73,9 @@ public class FTPserver_AP_CP1 {
         Cipher rsaCipher_decrypt = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         rsaCipher_decrypt.init(Cipher.DECRYPT_MODE, server_privateKey);
 
-        //TODO: break up bytes into <117= 100 per block to do final
+        //TODO: break up bytes into 128 per block to do final(max)
         int file_byte_length= fileReceived_byte.length;
-        int number_of_blocks= (int) Math.ceil(file_byte_length/100.0);
+        int number_of_blocks= (int) Math.ceil(file_byte_length/128.0);
         //e.g. 350: get 3: index from 0 to 3
         //encrypt message
         byte[][] blocks_of_fileBytes= new byte[number_of_blocks][];
@@ -84,14 +84,14 @@ public class FTPserver_AP_CP1 {
         for (int i=0; i<blocks_of_fileBytes.length; i++) {
             //e.g. 1st block: copys 0th-100th byte from received file byte array
             if (i< blocks_of_fileBytes.length-1) {
-                blocks_of_fileBytes[i] = Arrays.copyOfRange(fileReceived_byte, i * 100, (i + 1) * 100);
+                blocks_of_fileBytes[i] = Arrays.copyOfRange(fileReceived_byte, i * 128, (i + 1) * 128);
             }
             else{
-                blocks_of_fileBytes[i] = Arrays.copyOfRange(fileReceived_byte, i * 100, fileReceived_byte.length);
+                blocks_of_fileBytes[i] = Arrays.copyOfRange(fileReceived_byte, i * 128, fileReceived_byte.length);
             //e.g. 10th block( i= 9) has 70 bytes, we copy 900th byte to 970th byte(exclusive)
             }
         }
-        for (int i=0; i<blocks_of_fileBytes.length; i+=100) {
+        for (int i=0; i<blocks_of_fileBytes.length; i++) {
             blocks_of_decryptedBytes[i]= rsaCipher_decrypt.doFinal(blocks_of_fileBytes[i]);
         }
         //TODO: concantenate byte array using ByteArrayOutputStream

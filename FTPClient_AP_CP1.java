@@ -198,7 +198,7 @@ public class FTPClient_AP_CP1 {
                     //TODO: break up bytes into <117= 100 per block to do final
                     int file_byte_length= input_file_as_byte_array.length;
                     System.out.println("input file byte array length= "+ input_file_as_byte_array.length);
-                    int number_of_blocks= (int) Math.ceil(file_byte_length/100.0);
+                    int number_of_blocks= (int) Math.ceil(file_byte_length/128.0);
                     //e.g. 350: get 3: index from 0 to 3
                     //encrypt message
                     byte[][] blocks_of_fileBytes= new byte[number_of_blocks][];
@@ -207,13 +207,13 @@ public class FTPClient_AP_CP1 {
                     for (int i=0; i<blocks_of_fileBytes.length; i++) {
                         //e.g. 1st block: copys 0th-100th byte from received file byte array
                         if (i< blocks_of_fileBytes.length-1) { //e.g. length = 10 , index 0-8 copy here, 9 copy using below(might be less than 100 bytes)
-                            blocks_of_fileBytes[i] = Arrays.copyOfRange(input_file_as_byte_array, i * 100, (i + 1) * 100);
+                            blocks_of_fileBytes[i] = Arrays.copyOfRange(input_file_as_byte_array, i * 128, (i + 1) * 128);
                         }
                         else{
-                            blocks_of_fileBytes[i] = Arrays.copyOfRange(input_file_as_byte_array, i * 100, input_file_as_byte_array.length);
+                            blocks_of_fileBytes[i] = Arrays.copyOfRange(input_file_as_byte_array, i * 128, input_file_as_byte_array.length);
                             //e.g. 10th block( i= 9) has 70 bytes, we copy 900th byte to 970th byte(exclusive)
-                            System.out.println("from: "+ i*100);
-                            System.out.println("to: "+ (input_file_as_byte_array.length-(i*100)));
+                            System.out.println("from: "+ i*128);
+                            System.out.println("to: "+ (input_file_as_byte_array.length-(i*128)));
                         }
                     }
                     for (int i=0; i<blocks_of_fileBytes.length; i++) {
