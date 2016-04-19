@@ -62,6 +62,7 @@ public class FTPserver_AP_CP2 {
         String fileReceived = in.readLine();
         // read encrypted DES session key from client, write acknowledgement to client
         String secrete_key_byte_encrypted_string = in.readLine();
+        System.out.println(secrete_key_byte_encrypted_string);
         out.write("uploaded file\n");
         out.flush();
 
@@ -73,7 +74,7 @@ public class FTPserver_AP_CP2 {
         Cipher rsaCipher_decrypt = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         rsaCipher_decrypt.init(Cipher.DECRYPT_MODE, server_privateKey);
         byte[] decryptedBytes = rsaCipher_decrypt.doFinal(secrete_key_byte_encrypted);
-        SecretKey key = new SecretKeySpec(secrete_key_byte_encrypted, 0, secrete_key_byte_encrypted.length, "DES");
+        SecretKey key = new SecretKeySpec(decryptedBytes, 0, decryptedBytes.length, "DES");
 
         //create cipher object, initialize the ciphers with the given key, choose decryption mode as DES
         Cipher cipher_decrypt = Cipher.getInstance("DES");

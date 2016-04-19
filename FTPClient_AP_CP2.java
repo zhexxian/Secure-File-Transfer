@@ -211,8 +211,11 @@ public class FTPClient_AP_CP2 {
                     //encrypt message
                     byte[] secrete_key_byte_encrypted = rsaCipher_encrypt.doFinal(secrete_key_byte);
 
+                    //convert encrypted DES session key to base64 format
+                    String secrete_key_byte_encrypted_string = DatatypeConverter.printBase64Binary(secrete_key_byte_encrypted);
+
                     //SEND TO SECSTORE
-                    out.write(new String(secrete_key_byte_encrypted)+"\n");
+                    out.write(secrete_key_byte_encrypted_string+"\n");
                     out.flush();
                     file_sent = true;
                 } 
