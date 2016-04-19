@@ -1,5 +1,7 @@
 package nsproject;
 
+import com.sun.xml.internal.ws.util.ByteArrayBuffer;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
@@ -195,17 +197,23 @@ public class FTPClient_AP_CP1 {
                     //encrypt message
                     byte[][] blocks_of_fileBytes= new byte[number_of_blocks][];
                     byte[][] blocks_of_encryptedBytes= new byte[number_of_blocks][];
-                    byte[] encryptedBytes= new byte[input_file_as_byte_array.length];
 
                     for (int i=0; i<blocks_of_fileBytes.length; i+=100) {
-                        blocks_of_fileBytes[i]= Arrays.copyOfRange(input_file_as_byte_array, i, i+100);
+                        blocks_of_fileBytes[i]= Arrays.copyOfRange(input_file_as_byte_array, i, i + 100);
+                    }
+                    for (int i=0; i<blocks_of_fileBytes.length; i+=100) {
                         blocks_of_encryptedBytes[i]= rsaCipher_encrypt.doFinal(blocks_of_fileBytes[i]);
                     }
-                    //tpodo: concatenate
-                    for (int i=0; i<blocks_of_fileBytes.length; i+=100) {
-                        joinblocks_of_encryptedBytes[i];
+                    //TODO: concantenate byte array using ByteArrayOutputStream
+                    ByteArrayOutputStream joining_encrypted_blocks= new ByteArrayOutputStream();
+
+                    for (byte[] block: blocks_of_encryptedBytes) {
+                        joining_encrypted_blocks.write(block, 0, block.length);
                     }
+                    byte[] encryptedBytes= joining_encrypted_blocks.toByteArray();
                     //byte[] encryptedBytes = rsaCipher_encrypt.doFinal(input_file_as_byte_array);
+                    //TODO: END OF CHANGE
+
                     System.out.println("Length of output message digest(signed with RSA) byte[]: " + input_file_as_byte_array.length);
 
                     //SEND TO SECSTORE
