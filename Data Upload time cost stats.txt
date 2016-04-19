@@ -1,0 +1,26 @@
+SIZE(BYTES), TIME(MS)- 1st: same computer, 2nd: diff computer
+
+CP1
+
+small(1182): 30
+medium(1580847): 15541
+large(3457027): 38194
+
+
+diff computer:
+small(1182): 62
+medium(1580847): 15367
+large(3457027): 31717
+
+CP2
+ 
+
+small(1182): 20
+medium(1580847): 175
+large(3457027): 252
+
+diff computer:
+small(1182): 33
+medium(1580847): 201
+large(3457027): 232
+
