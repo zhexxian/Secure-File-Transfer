@@ -108,8 +108,6 @@ public class FTPClient_AP_CP2 {
             }catch (Exception e){
                 e.printStackTrace();
                 System.out.println("Verification for MY cert gone wrong");
-                // close connection if verification fails
-                clientSocket.close();
             }
              
             //3.Extract public key from X509 cert object
