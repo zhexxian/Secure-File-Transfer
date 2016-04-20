@@ -190,11 +190,11 @@ public class FTPClient_AP_CP2 {
                     //byte[] digest = messageDigest.digest(data.getBytes());  //the data is the file
                     //sign msgdigest with key
 
-                    //generate session secret key using DES algorithm
-                    SecretKey key = KeyGenerator.getInstance("DES").generateKey();
+                    //generate session secret key using AES algorithm
+                    SecretKey key = KeyGenerator.getInstance("AES").generateKey();
 
-                    //create cipher object, initialize the ciphers with the given key, choose encryption mode as DES
-                    Cipher cipher_encrypt = Cipher.getInstance("DES");
+                    //create cipher object, initialize the ciphers with the given key, choose encryption mode as AES
+                    Cipher cipher_encrypt = Cipher.getInstance("AES");
                     cipher_encrypt.init(Cipher.ENCRYPT_MODE, key); //init as encrypt mode
 
                     //do encryption, by calling method Cipher.doFinal().
@@ -203,23 +203,23 @@ public class FTPClient_AP_CP2 {
                     //convert encrypted file to base64 format
                     String encryptedBytes_string = DatatypeConverter.printBase64Binary(encryptedBytes);
 
-                    //send DES encrypted file to client
+                    //send AES encrypted file to client
                     out.write(encryptedBytes_string+"\n");
                     out.flush();
-                    System.out.println("DES encrypted file sent");                  
+                    System.out.println("AES encrypted file sent");                  
 
                     //Create RSA("RSA/ECB/PKCS1Padding") cipher object and initialize is as encrypt mode, 
                     //use PUBLIC key.
                     Cipher rsaCipher_encrypt = Cipher.getInstance("RSA/ECB/PKCS1Padding");
                     rsaCipher_encrypt.init(Cipher.ENCRYPT_MODE, server_publicKey);
 
-                    //convert secrete DES session key to byte[]
+                    //convert secrete AES session key to byte[]
                     byte[] secrete_key_byte = key.getEncoded();
 
                     //encrypt message
                     byte[] secrete_key_byte_encrypted = rsaCipher_encrypt.doFinal(secrete_key_byte);
 
-                    //convert encrypted DES session key to base64 format
+                    //convert encrypted AES session key to base64 format
                     String secrete_key_byte_encrypted_string = DatatypeConverter.printBase64Binary(secrete_key_byte_encrypted);
 
                     //SEND TO SECSTORE
