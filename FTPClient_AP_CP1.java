@@ -37,14 +37,6 @@ import java.util.Arrays;
 import javax.crypto.Cipher;
 import javax.xml.bind.DatatypeConverter;
 
-//import sun.misc.IOUtils;
-
-/**
- * Created by valerie_tan on 4/12/2016.
- */
-//objective: implement a secure file upload application from a client(myself) to an Internet file server(Secstore)
-
-
 public class FTPClient_AP_CP1 {
 
     public static void main(String args[]) {
@@ -56,54 +48,47 @@ public class FTPClient_AP_CP1 {
 
         boolean file_sent = false;
         boolean upload_acknowledged = false;
-
-//1. FIXED VERSION OF AP PROTOCOL: - use nonce to authenticate identity of file server(SecStore)
-
-        //FIRST, must obtain a trusted Secstore public key
-        //make use of CERTIFICATE(from CSE-CA) to verify server's signed certifcate (use X509CERT class in java)
-        //TODO:- extract CA's public key from CA's cert
-        //TODO: - use CA public key to verify server's signed cert
-        //ask Secstore to sign a msg using its PRIVATE key. receive msg,
-        //use Secstore's (trusted) public key to verify signed msg        
+      
         try {
 
-            //CREATE TCP CONNECTIONS - CONNECT TO SERVER 
+            //handshake with server
             Socket clientSocket = new Socket(hostName, portNumber);
 
+            //initiate IO
             InputStream inputStream_from_server = clientSocket.getInputStream();
             InputStreamReader isr = new InputStreamReader(inputStream_from_server);
             BufferedReader in = new BufferedReader(isr);
             OutputStream outputStream_to_server = clientSocket.getOutputStream();
             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(),true);
 
+
+
+//---------------------------1. Authentication (CA)--------------------------------//
+
             //receive certificate from server
             String serverCert_string = in.readLine();
             byte[] serverCert_byte = DatatypeConverter.parseBase64Binary(serverCert_string);
-            //String decryptedFile_string = DatatypeConverter.printBase64Binary(decryptedFile);
 
-            // create a new file to store ht file received from client
+            //create a new file to store the certificate received from client
             File file = new File("cert.crt");
             FileWriter writer = new FileWriter(file);
             writer.write(new String(serverCert_byte));
             writer.close();
 
-
-            //1. Create X509 Certificate object
+            //create X509 Certificate object
             InputStream caCertInputStream= new FileInputStream("C:\\Users\\zhexian\\Documents\\GitHub\\Encrypted_FTP_NSproject\\CA.crt"); //TODO: REPLACE WITH ADDRESS
             CertificateFactory cf_ca= CertificateFactory.getInstance("X.509");
             X509Certificate CAcert= (X509Certificate) cf_ca.generateCertificate(caCertInputStream);
 
+            //check CA cert validity
             try{
                 CAcert.checkValidity();
-                System.out.println("CA certificate checked");
+                System.out.println("CA certificate valid");
             }catch (CertificateExpiredException e){
                 e.printStackTrace();
             } catch (CertificateNotYetValidException e){
                 e.printStackTrace();
-                System.out.println("CA certificate not yet valid");
             }
-
-            //TODO: CREATE OBJECT FOR MY CERT, VALIDIFY AND VERIFY
 
             // InputStream certFileInputStream = new FileInputStream("C:\\Users\\valer_000\\AndroidStudioProjects\\" +
             //         "CSE\\nslabs\\src\\main\\java\\nsproject\\Signed Certificate - 1001191.crt");
@@ -112,32 +97,36 @@ public class FTPClient_AP_CP1 {
             InputStream certFileInputStream = new FileInputStream("cert.crt");
             CertificateFactory cf_myself = CertificateFactory.getInstance("X.509");
             X509Certificate MyCert = (X509Certificate) cf_myself.generateCertificate(certFileInputStream);
-            //2. Check validity of signed cert, if not valid an exception will be thrown
+            
+            //check validity of server signed cert, if not valid an exception will be thrown
             try{
                 MyCert.checkValidity();
-                System.out.println("public key certificate checked");
+                System.out.println("server certificate valid");
             }
-            // CertificateExpiredException - if the certificate has expired.
+            //CertificateExpiredException - if the certificate has expired.
             catch (CertificateExpiredException e){
                 e.printStackTrace();
             }
-            // CertificateNotYetValidException - if the certificate is not yet valid.
+            //CertificateNotYetValidException - if the certificate is not yet valid.
             catch (CertificateNotYetValidException e){
                 e.printStackTrace();
-                System.out.println("My certificate not yet valid");
             }
-            //verify my cert using CA's public key
+
+            //verify server cert using CA's public key
             PublicKey CA_Key = CAcert.getPublicKey();
-            
             try {
                 MyCert.verify(CA_Key);
+                System.out.println("server certificate verified");
             }catch (Exception e){
                 e.printStackTrace();
-                System.out.println("Verification for MY cert gone wrong");
             }
              
-            //3.Extract public key from X509 cert object
+            //extract public key from X509 cert object
             PublicKey server_publicKey = MyCert.getPublicKey();
+
+
+
+//---------------------------2. Authentication (nonce)--------------------------------// 
 
             //broadcast nonce (an int) to server (send without encryption)
             out.println(my_nonce);
@@ -164,11 +153,15 @@ public class FTPClient_AP_CP1 {
                 System.out.println("nonce matched");
             }
 
+
+
+//---------------------------3. Confidentiality (RSA)--------------------------------//
+
             //check that server acknowledged file upload, print and close connection
             //use a do-while loop (send file, receive acknowledgment, close connection)
             do{
                 if(!file_sent){
-                    //send file (move in rest of code)
+                    //enter file name
                     System.out.println("enter the name of the file to be transferred: ");
                     BufferedReader stdIn =
                         new BufferedReader(
@@ -181,14 +174,10 @@ public class FTPClient_AP_CP1 {
                     String data = "";
                     String line;
                     BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName));
+                    //parse file content into byte array
                     while ((line = bufferedReader.readLine()) != null) {
                         data = data + "\n" + line;
                     }
-                    //Testing
-                    //System.out.println("File content:\n " + data);
-                    //TODO: Calculate message digest, using MD5 hash function
-                    //MessageDigest messageDigest = MessageDigest.getInstance("MD5");
-                    //supply with input data (byte stream) using update() method
                     FileInputStream fileInputStream = null;
                     byte[] input_file_as_byte_array = new byte[(int) file_to_server.length()];
 
@@ -200,20 +189,18 @@ public class FTPClient_AP_CP1 {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    //messageDigest.update(input_file_as_byte_array);
-                    //byte[] digest = messageDigest.digest(data.getBytes());  //the data is the file
-                    //sign msgdigest with key
-
+                    
                     //Create RSA("RSA/ECB/PKCS1Padding") cipher object and initialize is as encrypt mode, 
                     //use PUBLIC key.
                     Cipher rsaCipher_encrypt = Cipher.getInstance("RSA/ECB/PKCS1Padding");
                     rsaCipher_encrypt.init(Cipher.ENCRYPT_MODE, server_publicKey);
 
-                    //TODO: break up bytes into <117= 100 per block to do final
+                    //break up bytes into <117= 100 per block to do final
                     int file_byte_length= input_file_as_byte_array.length;
                     System.out.println("input file byte array length= "+ input_file_as_byte_array.length);
                     int number_of_blocks= (int) Math.ceil(file_byte_length/117.0);
                     //e.g. 350: get 3: index from 0 to 3
+                    
                     //encrypt message
                     byte[][] blocks_of_fileBytes= new byte[number_of_blocks][];
                     byte[][] blocks_of_encryptedBytes= new byte[number_of_blocks][];
@@ -226,14 +213,12 @@ public class FTPClient_AP_CP1 {
                         else{
                             blocks_of_fileBytes[i] = Arrays.copyOfRange(input_file_as_byte_array, i * 117, input_file_as_byte_array.length);
                             //e.g. 10th block( i= 9) has 70 bytes, we copy 900th byte to 970th byte(exclusive)
-                            System.out.println("from: "+ i*1);
-                            System.out.println("to: "+ (input_file_as_byte_array.length-(i*117)));
                         }
                     }
                     for (int i=0; i<blocks_of_fileBytes.length; i++) {
                         blocks_of_encryptedBytes[i]= rsaCipher_encrypt.doFinal(blocks_of_fileBytes[i]);
                     }
-                    //TODO: concantenate byte array using ByteArrayOutputStream
+                    //concantenate byte array using ByteArrayOutputStream
                     ByteArrayOutputStream joining_encrypted_blocks= new ByteArrayOutputStream();
 
                     for (byte[] block: blocks_of_encryptedBytes) {
@@ -241,14 +226,10 @@ public class FTPClient_AP_CP1 {
                     }
                     byte[] encryptedBytes= joining_encrypted_blocks.toByteArray();
 
-                    // convert encryptedBytes to base64 format
+                    //convert encryptedBytes to base64 format
                     String encryptedBytes_string = DatatypeConverter.printBase64Binary(encryptedBytes);
                     //byte[] encryptedBytes = rsaCipher_encrypt.doFinal(input_file_as_byte_array);
-                    //TODO: END OF CHANGE
 
-                    System.out.println("Length of output message digest(signed with RSA) byte[]: " + input_file_as_byte_array.length);
-
-                    //SEND TO SECSTORE
                     out.write(encryptedBytes_string+"\n");
                     out.flush();
                     file_sent = true;
@@ -272,32 +253,6 @@ public class FTPClient_AP_CP1 {
 
                 }
             } while(!upload_acknowledged);
-
-            //TODO: convert file into byte stream
-
-            //TODO:IMPROVE AP PROTOCOL(NONCE?)plus MD5 HASHING AND PADDING - FOLLOW LAB 2)
-            //TODO: client side: encrypt data (hash + original file)? using server's PUBLIC KEY
-
-
-//TODO: 2.  CONFIDENTIALITY PROTOCOL (TWO TYPES)
-            //todo: FILE UPLOAD: implement using TCP sockets(ref software construction)
-            //todo: client handshake with Server SecStore, then upload
-
-            //TODO: use RSA to implement CP1 - using public key cryptography to ENCRYPT, use Secstore to decrypt
-            //todo:client encrypts file data(in units of blocks- for RSA key size of 1024 bits
-            //todo:max block length = 117 bytes) Before sending
-            //todo: SecStore decrypts data received
-
-
-
-            //TODO: use AES(use ECB mode) to implement CP2- which negotiates a shared session key btw client and server
-            //still using nonce
-            //todo:CPS uses this session key to provide confidentiality of file data
-            //todo:session key based on AES(key size of 128 bits, generated using Java JCE)
-            //note: a symmetric key crypto sys is much faster than RSA
-
-            //TODO(after coding): Measure data upload time costs of CP1 CP2 for files of diff sizes(provided).
-            // Plot results, compare performance
 
         } catch (FileNotFoundException e) {
             System.out.println("File not found");

@@ -17,23 +17,25 @@ import javax.xml.bind.DatatypeConverter;
 
 public class FTPserver_AP_CP1 {
     public static void main(String[] args) throws Exception {
-        // initiate the server socket
+        //initiate the server socket
         ServerSocket serverSocket = new ServerSocket(43211);
 
-        // handshake
+        //handshake with client
         Socket clientSocket = serverSocket.accept();
         System.out.println("client connected");  
 
+        //initiate IO
         InputStream inputStream_from_client = clientSocket.getInputStream();  
-        //DataInputStream dis = new DataInputStream(clientSocket.getInputStream()); 
-        //InputStreamReader isr = new InputStreamReader(dis);
         InputStreamReader isr = new InputStreamReader(inputStream_from_client);
         BufferedReader in = new BufferedReader(isr);
         OutputStream outputStream_to_client = clientSocket.getOutputStream();         
         PrintWriter out = new PrintWriter(outputStream_to_client, true);
 
-        // server send its own certificate to client
-        //send file (move in rest of code)
+
+
+//---------------------------1. Authentication (CA)--------------------------------//
+
+        //server send its own certificate to client
         String fileName = "C:\\Users\\zhexian\\Documents\\GitHub\\Encrypted_FTP_NSproject\\Signed Certificate - 1001214.crt";
         File file_to_client = new File(fileName);
         String data = "";
@@ -46,7 +48,6 @@ public class FTPserver_AP_CP1 {
         FileInputStream fileInputStream = null;
         byte[] input_file_as_byte_array = new byte[(int) file_to_client.length()];
         int file_byte_length= input_file_as_byte_array.length;
-        System.out.println("server public key byte array length= "+ input_file_as_byte_array.length);
         try {
             //convert file into byte array
             fileInputStream = new FileInputStream(file_to_client);
@@ -59,14 +60,19 @@ public class FTPserver_AP_CP1 {
         //convert byte array file (server certificate) to base64 format
         String input_file_as_byte_array_string = DatatypeConverter.printBase64Binary(input_file_as_byte_array);
 
-        //send file to client
+        //send cert to client
         out.write(input_file_as_byte_array_string+"\n");
         out.flush();
-        System.out.println("server certificate sent");    
+        System.out.println("server certificate sent");  
+
+
+
+
+//---------------------------2. Authentication (nonce)--------------------------------//  
 
         // receive plain nonce broadcasted by client
         String nonce = in.readLine();
-        System.out.println("nonce received: "+nonce);
+        System.out.println("plain nonce received: "+nonce);
 
         // generate private key
         String privateKeyFileName = "C:\\Users\\zhexian\\Dropbox\\VM\\NSProjectRelease\\"+
@@ -94,6 +100,9 @@ public class FTPserver_AP_CP1 {
 
 
 
+
+//---------------------------3. Confidentiality (RSA)--------------------------------//
+        
         // read file transfered from client, write acknowledgement to client
         String fileReceived = in.readLine();
         // start time for file transfer
@@ -155,8 +164,5 @@ public class FTPserver_AP_CP1 {
         long duration = (endTime - startTime); 
         // the time may include time to enter the name of the file to be transferred
         System.out.println("Time taken for file transfer [CP2] is: "+duration/1000000+" ms");                 
-
-        // System.out.println("Server connection terminated");   
-        // serverSocket.close();
     }
 }
