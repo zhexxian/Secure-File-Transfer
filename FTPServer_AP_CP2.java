@@ -30,37 +30,37 @@ public class FTPserver_AP_CP2 {
         OutputStream outputStream_to_client = clientSocket.getOutputStream();         
         PrintWriter out = new PrintWriter(outputStream_to_client, true);
 
-        // // server send its own certificate to client
-        // //send file (move in rest of code)
-        // String fileName = "C:\\Users\\zhexian\\Documents\\GitHub\\Encrypted_FTP_NSproject\\Signed Certificate - 1001214.crt";
-        // File file_to_client = new File(fileName);
-        // String data = "";
-        // String line;
-        // BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName));
-        // while ((line = bufferedReader.readLine()) != null) {
-        //     data = data + "\n" + line;
-        // }
+        // server send its own certificate to client
+        //send file (move in rest of code)
+        String fileName = "C:\\Users\\zhexian\\Documents\\GitHub\\Encrypted_FTP_NSproject\\Signed Certificate - 1001214.crt";
+        File file_to_client = new File(fileName);
+        String data = "";
+        String line;
+        BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName));
+        while ((line = bufferedReader.readLine()) != null) {
+            data = data + "\n" + line;
+        }
 
-        // FileInputStream fileInputStream = null;
-        // byte[] input_file_as_byte_array = new byte[(int) file_to_client.length()];
-        // int file_byte_length= input_file_as_byte_array.length;
-        // System.out.println("server public key byte array length= "+ input_file_as_byte_array.length);
-        // try {
-        //     //convert file into byte array
-        //     fileInputStream = new FileInputStream(file_to_client);
-        //     fileInputStream.read(input_file_as_byte_array);
-        //     fileInputStream.close();
-        // } catch (Exception e) {
-        //     e.printStackTrace();
-        // }
+        FileInputStream fileInputStream = null;
+        byte[] input_file_as_byte_array = new byte[(int) file_to_client.length()];
+        int file_byte_length= input_file_as_byte_array.length;
+        System.out.println("server public key byte array length= "+ input_file_as_byte_array.length);
+        try {
+            //convert file into byte array
+            fileInputStream = new FileInputStream(file_to_client);
+            fileInputStream.read(input_file_as_byte_array);
+            fileInputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        // //convert byte array file (server certificate) to base64 format
-        // String input_file_as_byte_array_string = DatatypeConverter.printBase64Binary(input_file_as_byte_array);
+        //convert byte array file (server certificate) to base64 format
+        String input_file_as_byte_array_string = DatatypeConverter.printBase64Binary(input_file_as_byte_array);
 
-        // //send file to client
-        // out.write(input_file_as_byte_array_string+"\n");
-        // out.flush();
-        // System.out.println("server certificate sent");    
+        //send file to client
+        out.write(input_file_as_byte_array_string+"\n");
+        out.flush();
+        System.out.println("server certificate sent");    
 
         // receive plain nonce broadcasted by client
         String nonce = in.readLine();

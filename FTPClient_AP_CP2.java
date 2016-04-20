@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -63,6 +64,27 @@ public class FTPClient_AP_CP2 {
         //ask Secstore to sign a msg using its PRIVATE key. receive msg,
         //use Secstore's (trusted) public key to verify signed msg        
         try {
+
+            //CREATE TCP CONNECTIONS - CONNECT TO SERVER 
+            Socket clientSocket = new Socket(hostName, portNumber);
+
+            InputStream inputStream_from_server = clientSocket.getInputStream();
+            InputStreamReader isr = new InputStreamReader(inputStream_from_server);
+            BufferedReader in = new BufferedReader(isr);
+            OutputStream outputStream_to_server = clientSocket.getOutputStream();
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(),true);
+
+            //receive certificate from server
+            String serverCert_string = in.readLine();
+            byte[] serverCert_byte = DatatypeConverter.parseBase64Binary(serverCert_string);
+            //String decryptedFile_string = DatatypeConverter.printBase64Binary(decryptedFile);
+
+            // create a new file to store ht file received from client
+            File file = new File("cert.crt");
+            FileWriter writer = new FileWriter(file);
+            writer.write(new String(serverCert_byte));
+            writer.close();
+
             //1. Create X509 Certificate object
             InputStream caCertInputStream= new FileInputStream("C:\\Users\\zhexian\\Documents\\GitHub\\Encrypted_FTP_NSproject\\CA.crt"); //TODO: REPLACE WITH ADDRESS
             CertificateFactory cf_ca= CertificateFactory.getInstance("X.509");
@@ -82,8 +104,9 @@ public class FTPClient_AP_CP2 {
 
             // InputStream certFileInputStream = new FileInputStream("C:\\Users\\valer_000\\AndroidStudioProjects\\" +
             //         "CSE\\nslabs\\src\\main\\java\\nsproject\\Signed Certificate - 1001191.crt");
-            InputStream certFileInputStream = new FileInputStream("C:\\Users\\zhexian\\Dropbox\\VM\\NSProjectRelease\\"+
-                    "Signed Certificate - 1001214.crt\\Signed Certificate - 1001214.crt");
+            // InputStream certFileInputStream = new FileInputStream("C:\\Users\\zhexian\\Dropbox\\VM\\NSProjectRelease\\"+
+            //         "Signed Certificate - 1001214.crt\\Signed Certificate - 1001214.crt");
+            InputStream certFileInputStream = new FileInputStream("cert.crt");
             CertificateFactory cf_myself = CertificateFactory.getInstance("X.509");
             X509Certificate MyCert = (X509Certificate) cf_myself.generateCertificate(certFileInputStream);
             //2. Check validity of signed cert, if not valid an exception will be thrown
@@ -112,17 +135,6 @@ public class FTPClient_AP_CP2 {
              
             //3.Extract public key from X509 cert object
             PublicKey server_publicKey = MyCert.getPublicKey();
-
-
-
-            //CREATE TCP CONNECTIONS - CONNECT TO SERVER 
-            Socket clientSocket = new Socket(hostName, portNumber);
-
-            InputStream inputStream_from_server = clientSocket.getInputStream();
-            InputStreamReader isr = new InputStreamReader(inputStream_from_server);
-            BufferedReader in = new BufferedReader(isr);
-            OutputStream outputStream_to_server = clientSocket.getOutputStream();
-            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(),true);
 
             //broadcast nonce (an int) to server (send without encryption)
             out.println(my_nonce);
