@@ -1,3 +1,9 @@
+/* Programming Assignment 2 
+* Author : Valerie Tan, Zhang Zhexian
+* ID : *******, 1001214 
+* Date : 20/04/2016 */
+
+
 package nsproject;
 
 import java.net.*;

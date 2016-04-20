@@ -1,3 +1,8 @@
+/* Programming Assignment 2 
+* Author : Valerie Tan, Zhang Zhexian
+* ID : *******, 1001214 
+* Date : 20/04/2016 */
+
 package nsproject;
 
 import java.io.BufferedReader;
@@ -60,7 +65,6 @@ public class FTPClient_AP_CP1 {
             BufferedReader in = new BufferedReader(isr);
             OutputStream outputStream_to_server = clientSocket.getOutputStream();
             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(),true);
-
 
 
 //---------------------------1. Authentication (CA)--------------------------------//

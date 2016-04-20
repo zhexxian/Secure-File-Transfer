@@ -1,3 +1,9 @@
+/* Programming Assignment 2 
+* Author : Valerie Tan, Zhang Zhexian
+* ID : *******, 1001214 
+* Date : 20/04/2016 */
+
+
 package nsproject;
 
 import java.net.*;
@@ -30,6 +36,7 @@ public class FTPserver_AP_CP1 {
         BufferedReader in = new BufferedReader(isr);
         OutputStream outputStream_to_client = clientSocket.getOutputStream();         
         PrintWriter out = new PrintWriter(outputStream_to_client, true);
+
 
 
 
@@ -102,7 +109,7 @@ public class FTPserver_AP_CP1 {
 
 
 //---------------------------3. Confidentiality (RSA)--------------------------------//
-        
+
         // read file transfered from client, write acknowledgement to client
         String fileReceived = in.readLine();
         // start time for file transfer
