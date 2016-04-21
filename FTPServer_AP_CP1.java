@@ -1,6 +1,6 @@
 /* Programming Assignment 2 
 * Author : Valerie Tan, Zhang Zhexian
-* ID : *******, 1001214 
+* ID : 1001191, 1001214 
 * Date : 20/04/2016 */
 
 
@@ -110,15 +110,25 @@ public class FTPserver_AP_CP1 {
 
 //---------------------------3. Confidentiality (RSA)--------------------------------//
 
+        //convert buffinputstream into byte array
+        BufferedInputStream bufferedInputStream= new BufferedInputStream(inputStream_from_client);
+        
+        Integer numberBytes = new Integer(in.readLine());
+        //initialize fileReceived_bytes
+        byte[] fileReceived_byte = new byte[numberBytes];
+        //then simply read over from stream into byte array
+        bufferedInputStream.read(fileReceived_byte, 0, numberBytes);
+        System.out.println("file received and read");
+
+
         // read file transfered from client, write acknowledgement to client
-        String fileReceived = in.readLine();
         // start time for file transfer
         long startTime = System.nanoTime();
         out.write("uploaded file\n");
         out.flush();
 
         // convert String received from client (encrypted file) to byte[]
-        byte[] fileReceived_byte = DatatypeConverter.parseBase64Binary(fileReceived);
+        //byte[] fileReceived_byte = DatatypeConverter.parseBase64Binary(fileReceived);
 
         // decrypt the encrypted file in byte[] format useing private key
         Cipher rsaCipher_decrypt = Cipher.getInstance("RSA/ECB/PKCS1Padding");
@@ -145,7 +155,7 @@ public class FTPserver_AP_CP1 {
         for (int i=0; i<blocks_of_fileBytes.length; i++) {
             blocks_of_decryptedBytes[i]= rsaCipher_decrypt.doFinal(blocks_of_fileBytes[i]);
         }
-        //TODO: concantenate byte array using ByteArrayOutputStream
+        //concantenate byte array using ByteArrayOutputStream
         ByteArrayOutputStream joining_decrypted_blocks= new ByteArrayOutputStream();
 
         for (byte[] block: blocks_of_decryptedBytes) {
@@ -154,22 +164,16 @@ public class FTPserver_AP_CP1 {
         byte[] decryptedBytes= joining_decrypted_blocks.toByteArray();
         //String decryptedFile_string = DatatypeConverter.printBase64Binary(decryptedBytes);
 
-        // create a new file to store ht file received from client
-        File file = new File("FTP1.txt");
-        FileWriter writer = new FileWriter(file);
-        writer.write(new String(decryptedBytes));
-        writer.close();
 
-        // File file = new File("FTP1.txt");
-        // FileOutputStream fos = new FileOutputStream(file);
-        // BufferedWriter out2 = new BufferedWriter(new OutputStreamWriter(fos));
-        // out2.write(decryptedFile_string);
-        // out2.close();
+        //write decrypted bytes into a image file using FileOuputStream
+        FileOutputStream create_image_file= new FileOutputStream("pathname for image.jpg");
+        create_image_file.write(decryptedBytes);
+        create_image_file.close();
 
         // end time for file transfer
         long endTime = System.nanoTime();
         long duration = (endTime - startTime); 
         // the time may include time to enter the name of the file to be transferred
-        System.out.println("Time taken for file transfer [CP2] is: "+duration/1000000+" ms");                 
+        System.out.println("Time taken for file transfer [CP1] is: "+duration/1000000+" ms");                 
     }
 }

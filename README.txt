@@ -1,6 +1,6 @@
 /* Programming Assignment 2 
 * Author : Valerie Tan, Zhang Zhexian
-* ID : *******, 1001214 
+* ID : 1001191, 1001214 
 * Date : 20/04/2016 */
 
 CONTENTS OF THIS FILE
@@ -65,7 +65,7 @@ Following are the instructions for the server and client respectively:
 	  String privateKeyFileName = "your//directory";
 
 * Step 4: Specify the name of the file to be saved, by changing the file
-	  name in line 158 (for CP1) and line 142 (for CP2).
+	  name in line 169 (for CP1) and line 149 (for CP2).
 
 * Step 5: Run the server program (do this before running client)
 

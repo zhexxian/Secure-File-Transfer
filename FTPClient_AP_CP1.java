@@ -1,10 +1,11 @@
 /* Programming Assignment 2 
 * Author : Valerie Tan, Zhang Zhexian
-* ID : *******, 1001214 
+* ID : 1001191, 1001214 
 * Date : 20/04/2016 */
 
 package nsproject;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
@@ -38,7 +39,6 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Arrays;
-
 import javax.crypto.Cipher;
 import javax.xml.bind.DatatypeConverter;
 
@@ -234,8 +234,16 @@ public class FTPClient_AP_CP1 {
                     String encryptedBytes_string = DatatypeConverter.printBase64Binary(encryptedBytes);
                     //byte[] encryptedBytes = rsaCipher_encrypt.doFinal(input_file_as_byte_array);
 
-                    out.write(encryptedBytes_string+"\n");
+                    //send the encryptedBytes.length
+                    out.println(encryptedBytes.length);
                     out.flush();
+
+                    //use bufferedpOUTPUTSTREAM INSTEAD OF PRINTWRITER FOR IMAGE
+                    BufferedOutputStream bufferedOutputStream= new BufferedOutputStream(outputStream_to_server);
+                    bufferedOutputStream.write(encryptedBytes, 0, encryptedBytes.length);
+                    System.out.println("stream size is: "+encryptedBytes.length);
+                    bufferedOutputStream.flush();
+
                     file_sent = true;
                 } 
 

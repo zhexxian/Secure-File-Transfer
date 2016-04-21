@@ -1,12 +1,13 @@
 /* Programming Assignment 2 
 * Author : Valerie Tan, Zhang Zhexian
-* ID : *******, 1001214 
+* ID : 1001191, 1001214 
 * Date : 20/04/2016 */
 
 
 
 package nsproject;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
@@ -38,7 +39,6 @@ import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-
 import javax.crypto.*;
 import javax.xml.bind.DatatypeConverter;
 
@@ -205,14 +205,20 @@ public class FTPClient_AP_CP2 {
                     //do encryption, by calling method Cipher.doFinal().
                     byte[] encryptedBytes = cipher_encrypt.doFinal(input_file_as_byte_array);
 
-                    //convert encrypted file to base64 format
-                    String encryptedBytes_string = DatatypeConverter.printBase64Binary(encryptedBytes);
+                    
+                    //send the encryptedBytes.length
+                    out.println(encryptedBytes.length);
+                    out.flush();
 
                     //send AES encrypted file to client
-                    out.write(encryptedBytes_string+"\n");
-                    out.flush();
-                    System.out.println("AES encrypted file sent");                  
+                    //use bufferedpOUTPUTSTREAM INSTEAD OF PRINTWRITER FOR IMAGE
+                    BufferedOutputStream bufferedOutputStream= new BufferedOutputStream(outputStream_to_server);
+                    bufferedOutputStream.write(encryptedBytes, 0, encryptedBytes.length);
+                    System.out.println("stream size is: "+encryptedBytes.length);
+                    bufferedOutputStream.flush();
 
+                    System.out.println("AES encrypted file sent");  
+                                
                     //Create RSA("RSA/ECB/PKCS1Padding") cipher object and initialize is as encrypt mode, 
                     //use PUBLIC key.
                     Cipher rsaCipher_encrypt = Cipher.getInstance("RSA/ECB/PKCS1Padding");
@@ -227,7 +233,7 @@ public class FTPClient_AP_CP2 {
                     //convert encrypted AES session key to base64 format
                     String secrete_key_byte_encrypted_string = DatatypeConverter.printBase64Binary(secrete_key_byte_encrypted);
 
-                    out.write(secrete_key_byte_encrypted_string+"\n");
+                    out.println(secrete_key_byte_encrypted_string);
                     out.flush();
                     file_sent = true;
                 } 

@@ -1,6 +1,6 @@
 /* Programming Assignment 2 
 * Author : Valerie Tan, Zhang Zhexian
-* ID : *******, 1001214 
+* ID : 1001191, 1001214 
 * Date : 20/04/2016 */
 
 
@@ -110,8 +110,17 @@ public class FTPserver_AP_CP2 {
 
 //---------------------------3. Confidentiality (RSA+AES)--------------------------------//
 
-        // read AES encrypted file from client
-        String fileReceived = in.readLine();
+        Integer numberBytes = new Integer(in.readLine());
+        //initialize fileReceived_bytes
+        byte[] fileReceived_byte = new byte[numberBytes];
+
+        //convert buffinputstream into byte array
+        BufferedInputStream bufferedInputStream= new BufferedInputStream(inputStream_from_client);
+        
+        //then simply read over from stream into byte array
+        bufferedInputStream.read(fileReceived_byte, 0, numberBytes);
+        System.out.println("file received and read");
+
         // start time for file transfer
         long startTime = System.nanoTime();
         // read encrypted AES session key from client, write acknowledgement to client
@@ -120,8 +129,7 @@ public class FTPserver_AP_CP2 {
         out.write("uploaded file\n");
         out.flush();
 
-        // convert String received from client (encrypted file) to byte[]
-        byte[] fileReceived_byte = DatatypeConverter.parseBase64Binary(fileReceived);
+        // convert String received from client to byte[]
         byte[] secrete_key_byte_encrypted = DatatypeConverter.parseBase64Binary(secrete_key_byte_encrypted_string);
 
         // decrypt the encrypted AES session key in byte[] format useing private key
@@ -136,13 +144,11 @@ public class FTPserver_AP_CP2 {
 
         //do decryption, by calling method Cipher.doFinal().
         byte[] decryptedFile = cipher_decrypt.doFinal(fileReceived_byte);
-        //String decryptedFile_string = DatatypeConverter.printBase64Binary(decryptedFile);
 
-        // create a new file to store ht file received from client
-        File file = new File("FTP1.txt");
-        FileWriter writer = new FileWriter(file);
-        writer.write(new String(decryptedFile));
-        writer.close();
+        //write decrypted bytes into a image file using FileOuputStream
+        FileOutputStream create_file= new FileOutputStream("filename.jpg");
+        create_file.write(decryptedFile);
+        create_file.close();
 
         // end time for file transfer
         long endTime = System.nanoTime();
