@@ -6,7 +6,6 @@ secure file transfer between different machines (ports). It allows the client
 to transfer a file, specified by its file name, to be received and stored by
 a verified server.
 
-[TOC]
 
 Features
 ========
